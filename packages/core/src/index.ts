@@ -5,3 +5,4 @@ export * from './spec.js';
 export * from './planner.js';
 export * from './gates.js';
 export * from './adapter-godot.js';
+export * from './adapter-web.js';

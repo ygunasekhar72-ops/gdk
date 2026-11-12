@@ -6,7 +6,7 @@ import {
   loadSpec,
   planTeam,
   runGates,
-  godotAdapter,
+  adapterForProject,
   ALL_RULES,
   type GameSpec,
 } from '@gdk/core';
@@ -32,7 +32,8 @@ server.tool(
   'Run all GDK quality gates (graphics, physics, logic, multiplayer, security, qa) against a game project directory. Returns per-rule results; blockers/majors failing = build rejected.',
   { project_dir: z.string().describe('Absolute path to the game project directory') },
   async ({ project_dir }) => {
-    const report = await runGates(project_dir, godotAdapter);
+    const { adapter } = adapterForProject(project_dir);
+    const report = await runGates(project_dir, adapter);
     const verdict = report.passed ? 'PASS' : 'FAIL';
     return {
       content: [

@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import * as nodePath from 'node:path';
-import type { GateReport, Rule, RuleResult } from './types.js';
+import type { GameSpec, GateReport, Rule, RuleResult } from './types.js';
 import { ALL_RULES } from './rules.js';
 import { runStaticCheck } from './scanners.js';
 import { loadSpec, SPEC_FILENAME } from './spec.js';
@@ -24,6 +24,30 @@ export interface EngineAdapter {
   runRuntimeRules(root: string, rules: Rule[]): Promise<RuleResult[]>;
   /** Can the adapter actually execute runtime rules right now? */
   available(): Promise<boolean>;
+  /** Optional per-engine rewrites of static rule checks (scopes/patterns). */
+  transformRule?(rule: Rule): Rule;
+}
+
+/** Which rules apply to a given spec (not applicable ⇒ reported as skipped N/A). */
+export function ruleAppliesToSpec(rule: Rule, spec: GameSpec | null): { applies: boolean; reason: string } {
+  const mpOn = spec?.multiplayer?.enabled === true;
+  if (rule.id.startsWith('NET.')) {
+    return mpOn
+      ? { applies: true, reason: '' }
+      : { applies: false, reason: 'netcode rule N/A: spec.multiplayer.enabled is false' };
+  }
+  if (['SEC.RATE-LIMIT', 'SEC.TRANSPORT', 'SEC.SANITIZE'].includes(rule.id)) {
+    return mpOn
+      ? { applies: true, reason: '' }
+      : { applies: false, reason: 'security rule N/A: no networked clients in this spec' };
+  }
+  if (rule.id.startsWith('PHY.')) {
+    const needs = spec === null || spec.physics?.needs === true || mpOn;
+    return needs
+      ? { applies: true, reason: '' }
+      : { applies: false, reason: 'physics rule N/A: spec.physics.needs is false' };
+  }
+  return { applies: true, reason: '' };
 }
 
 export async function runGates(root: string, adapter: EngineAdapter): Promise<GateReport> {
@@ -31,18 +55,57 @@ export async function runGates(root: string, adapter: EngineAdapter): Promise<Ga
   if (!fs.existsSync(absRoot)) {
     throw new Error(`project directory not found: ${absRoot}`);
   }
-  const results: RuleResult[] = [];
 
-  for (const rule of ALL_RULES) {
-    if (rule.kind === 'static') {
-      results.push(runStaticCheck(rule, absRoot));
-    } else if (rule.kind === 'policy') {
-      results.push(runPolicyCheck(rule, absRoot));
+  // The spec (if present) decides which rules apply to this project.
+  let spec: GameSpec | null = null;
+  const specPath = nodePath.join(absRoot, SPEC_FILENAME);
+  if (fs.existsSync(specPath)) {
+    try {
+      spec = loadSpec(specPath);
+    } catch {
+      spec = null; // QA.SPEC-COMPLETE will report the invalid spec itself
     }
-    // 'runtime' rules are collected below in one adapter pass
   }
 
-  const runtimeRules = ALL_RULES.filter((r) => r.kind === 'runtime');
+  const results: RuleResult[] = [];
+  const staticAndPolicyRules = ALL_RULES.filter((r) => r.kind !== 'runtime');
+  const runtimeRules: Rule[] = [];
+
+  for (const rule of staticAndPolicyRules) {
+    const applicability = ruleAppliesToSpec(rule, spec);
+    if (!applicability.applies) {
+      results.push({
+        ruleId: rule.id,
+        status: 'skipped',
+        severity: rule.severity,
+        evidence: [],
+        message: applicability.reason,
+      });
+      continue;
+    }
+    const effective = adapter.transformRule ? adapter.transformRule(rule) : rule;
+    if (effective.kind === 'static') {
+      results.push(runStaticCheck(effective, absRoot));
+    } else if (effective.kind === 'policy') {
+      results.push(runPolicyCheck(effective, absRoot));
+    }
+  }
+  for (const rule of ALL_RULES) {
+    if (rule.kind !== 'runtime') continue;
+    const applicability = ruleAppliesToSpec(rule, spec);
+    if (!applicability.applies) {
+      results.push({
+        ruleId: rule.id,
+        status: 'skipped',
+        severity: rule.severity,
+        evidence: [],
+        message: applicability.reason,
+      });
+      continue;
+    }
+    runtimeRules.push(rule);
+  }
+
   if (runtimeRules.length > 0) {
     try {
       if (await adapter.available()) {

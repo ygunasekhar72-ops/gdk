@@ -13,6 +13,17 @@ them three things:
 
 "Absolute" is not a vibe here — it is a gate report.
 
+## Case study: before / after
+
+The same game ("Mini GTA", top-down open-world driving for the browser) built
+twice by AI agents — once **without** GDK (ungoverned: one 1,041-line script,
+variable timestep, zero verification) and once **through the GDK pipeline**
+(spec → planner → phased build → **acceptance PASS**: 18 rules green with
+evidence, 9 honest N/A skips, 7-test headless proof suite):
+
+**Live preview (both playable): https://ygunasekhar72-ops.github.io/gdk-preview/**
+· case-study repo: [gdk-preview](https://github.com/ygunasekhar72-ops/gdk-preview)
+
 ## The pillars
 
 | Pillar | Core law | Example rules |
@@ -95,7 +106,7 @@ your agent host if it supports custom agent definitions.
 ## Repository map
 
 ```
-packages/core    pillar rules + gate runner + team planner + Godot adapter
+packages/core    pillar rules + gate runner + team planner + engine adapters (godot, web)
 packages/cli     `gdk` command line (new / plan / agents / gates / standards)
 packages/mcp     MCP server exposing the same powers to any MCP host
 skills/          the 7 specialist playbooks (gdk-lead, -physics, -logic, -netcode, -graphics, -security, -qa)

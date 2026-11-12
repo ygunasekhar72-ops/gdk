@@ -6,6 +6,7 @@ import {
   planTeam,
   runGates,
   godotAdapter,
+  adapterForProject,
   ALL_RULES,
   type GameSpec,
   type GateReport,
@@ -137,7 +138,8 @@ async function main(): Promise<void> {
         process.exit(2);
       }
       const wantJson = args.includes('--json');
-      const report = await runGates(nodePath.resolve(dir), godotAdapter);
+      const { adapter } = adapterForProject(nodePath.resolve(dir));
+      const report = await runGates(nodePath.resolve(dir), adapter);
       if (wantJson) {
         console.log(JSON.stringify(report, null, 2));
       } else {
