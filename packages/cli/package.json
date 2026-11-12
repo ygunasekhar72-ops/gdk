@@ -1,0 +1,20 @@
+{
+  "name": "@gdk/cli",
+  "version": "0.1.0",
+  "description": "GDK CLI — scaffold games, plan agent teams, run quality gates.",
+  "type": "module",
+  "bin": {
+    "gdk": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@gdk/core": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  },
+  "license": "MIT"
+}

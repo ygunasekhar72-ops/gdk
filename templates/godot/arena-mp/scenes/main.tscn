@@ -1,0 +1,42 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/net/server_sim.gd" id="2_simsim"]
+[ext_resource type="Script" path="res://scripts/net/client_net.gd" id="3_clinet"]
+
+[sub_resource type="Environment" id="Env_main"]
+background_mode = 1
+background_color = Color(0.12, 0.14, 0.2, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.8, 0.85, 0.95, 1)
+ambient_light_energy = 1.2
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
+size = Vector2(52, 52)
+
+[sub_resource type="StandardMaterial3D" id="Mat_floor"]
+albedo_color = Color(0.22, 0.34, 0.22, 1)
+roughness = 0.9
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="Env" type="WorldEnvironment" parent="."]
+environment = SubResource("Env_main")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.85, 0.4, 0)
+
+[node name="FloorMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_floor")
+surface_material_override/0 = SubResource("Mat_floor")
+
+[node name="Players" type="Node3D" parent="."]
+
+[node name="Coins" type="Node3D" parent="."]
+
+[node name="ServerSim" type="Node" parent="."]
+script = ExtResource("2_simsim")
+
+[node name="ClientNet" type="Node" parent="."]
+script = ExtResource("3_clinet")

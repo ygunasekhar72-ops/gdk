@@ -1,0 +1,11 @@
+{
+  "name": "coin-arena",
+  "genre": "arena",
+  "engine": "godot",
+  "dimensions": "3d",
+  "multiplayer": { "enabled": true, "mode": "realtime-authoritative", "maxPlayers": 8, "tickRate": 60 },
+  "physics": { "needs": true, "tickRate": 60, "gravity": [0, -9.8, 0] },
+  "graphics": { "targetFps": 60, "qualityPreset": "medium" },
+  "security": { "dedicatedServer": true, "chat": false, "economy": false },
+  "platforms": ["windows", "linux", "macos"]
+}

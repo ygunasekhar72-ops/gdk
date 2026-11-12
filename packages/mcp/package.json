@@ -1,0 +1,22 @@
+{
+  "name": "@gdk/mcp",
+  "version": "0.1.0",
+  "description": "GDK MCP server — exposes planning, standards, scaffolding and quality gates to any MCP client.",
+  "type": "module",
+  "bin": {
+    "gdk-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@gdk/core": "*",
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  },
+  "license": "MIT"
+}
